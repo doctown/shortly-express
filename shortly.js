@@ -2,7 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-
+var cookieParser = require('cookie-parser');
+var session = require('express-session'); 
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -21,10 +22,19 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+app.use(cookieParser());
+app.use(session({
+  secret: 'this is my secret',
+  resave: false,
+  saveUninitialized: true
+}));
 
 
 app.get('/', 
 function(req, res) {
+  console.log(req.cookies);
+  console.log('=============');
+  console.log(req.session);
   res.render('index');
 });
 
@@ -75,7 +85,14 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
-
+app.post('/login', function(req, res) {
+  var username = request.body.username;
+  var password = request.body.password;
+ 
+  // if the username and password are in the database
+    // then assign the session id to the session attribute
+    
+})
 
 
 /************************************************************/
