@@ -110,21 +110,7 @@ app.post('/login', function(req, res) {
 });
 
 app.get('/login', function(req, res) {
-  res.send('<form method="post" action="/login">' +
-  '<p>' +
-    '<label>Username:</label>' +
-    '<input type="text" name="username">' +
-  '</p>' +
-  '<p>' +
-    '<label>Password:</label>' +
-    '<input type="text" name="password">' +
-  '</p>' +
-  '<p>' +
-    '<input type="submit" value="Login">' +
-  '</p>' +
-  '</form>').end();
-
-//  res.sendStatus(200);
+  res.render('login');
 });
 
 app.get('/logout', function(req, res) {
@@ -133,10 +119,14 @@ app.get('/logout', function(req, res) {
   });
 });
 
+app.get('/signup', function(req, res) {
+  res.render('signup');
+});
+
 app.post('/signup', function(req, res) {
   var body = req.body;
 
-  db.knex('users').insert({username: body.username}).then(function() {
+  db.knex('users').insert({username: body.username, password: body.password}).then(function() {
     res.status(201);
     // TODO: create a session and save session to database for user
     // redirect the user to index.html
