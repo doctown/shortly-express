@@ -91,8 +91,8 @@ app.post('/login', function(req, res) {
  
   // if the username and password are in the database
     // then assign the session id to the session attribute
-    
-})
+
+});
 
 
 /************************************************************/
