@@ -4,7 +4,8 @@ var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var cookieSession = require('cookie-session');
-
+var util = require('./helpers');
+var bcrypt = require('bcrypt-nodejs');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -92,17 +93,17 @@ app.post('/login', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
 
-  // check that username and password authentiv=cate to the database 
-  db.knex('users').where({username: username, password: password}).then(function(result) {
-    // TODO: Create new session id and save in database for user
+
+  // check that username and password authenticate to the database 
+  db.knex('users').where({username: username}).then(function(result) {
     if (result.length > 0) {
-      
-      req.session.regenerate(function() {
-        req.session.user = username;
-        // redirect user to home page
-        res.status(200).redirect('/');
+      bcrypt.compare(password, result[0].password, function(err, match) {
+        if (match) {
+          util.createSession(req, res, username);
+        } else {
+          res.status(200).redirect('/login');    
+        }
       });
-        
     } else { // then create a session
       res.status(200).redirect('/login');
     }
@@ -124,13 +125,13 @@ app.get('/signup', function(req, res) {
 });
 
 app.post('/signup', function(req, res) {
-  var body = req.body;
+  var username = req.body.username;
+  var password = req.body.password;
 
-  db.knex('users').insert({username: body.username, password: body.password}).then(function() {
-    res.status(201);
-    // TODO: create a session and save session to database for user
-    // redirect the user to index.html
-    res.redirect('/');
+  bcrypt.hash(password, null, null, function(err, hash) {
+    db.knex('users').insert({username: username, password: hash}).then(function() {
+      util.createSession(req, res, username);
+    });
   });
 });
 
