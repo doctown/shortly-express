@@ -2,8 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
-var cookieParser = require('cookie-parser');
-var session = require('express-session'); 
+var session = require('express-session');
+var cookieSession = require('cookie-session');
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -22,20 +22,21 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
-app.use(cookieParser());
 app.use(session({
   secret: 'this is my secret',
   resave: false,
   saveUninitialized: true
 }));
 
-
 app.get('/', 
 function(req, res) {
-  console.log(req.cookies);
-  console.log('=============');
-  console.log(req.session);
-  res.render('index');
+  //console.log(req.cookie);
+  if (req.session.id === req.sessionID) {
+    res.render('index'); 
+  } else {
+    console.log('Not equal'); 
+    res.redirect('/login');
+  }
 });
 
 app.get('/create', 
@@ -86,12 +87,36 @@ function(req, res) {
 // Write your authentication routes here
 /************************************************************/
 app.post('/login', function(req, res) {
-  var username = request.body.username;
-  var password = request.body.password;
- 
-  // if the username and password are in the database
-    // then assign the session id to the session attribute
+  var username = req.body.username;
+  var password = req.body.password;
 
+  // check that username and password authentiv=cate to the database
+  db.knex('users').where({username: username, password: password}).then(function(result) {
+    // TODO: Create new session id and save in database for user
+    if (result.length > 0) {
+      /*
+      req.session.regenerate(function(err) {
+        // will have a new session here
+      });
+      */
+      // redirect user to home page
+      res.status(201).redirect('/');
+    } else { // then create a session
+      
+    }
+  });
+});
+
+app.post('/signup', function(req, res) {
+  var body = req.body;
+  //console.log(JSON.stringify(body));
+
+  db.knex('users').insert({username: body.username}).then(function() {
+    res.status(201);
+    // TODO: create a session and save session to database for user
+    // redirect the user to index.html
+    res.redirect('/');
+  });
 });
 
 
