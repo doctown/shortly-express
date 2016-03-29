@@ -29,37 +29,25 @@ app.use(session({
   saveUninitialized: true
 }));
 
-
-app.use(function (req, res, next) {
-  var views = req.session.views;
- 
-  if (!views) {
-    views = req.session.views = 0;
+// redirects user to login page if session is not valid
+var restrict = function (req, res, next) {
+  if (req.session.user) {
+    next();
   } else {
-    views++;
-  }
-  
-  next();
-});
-
-app.get('/', 
-function(req, res) {
-  //console.log(req.cookie);
-  if (req.session.id === req.sessionID) {
-    res.render('index'); 
-  } else {
-    console.log('Not equal'); 
+    req.session.error = 'Access denied!';
     res.redirect('/login');
   }
+};
+
+app.get('/', restrict, function(req, res) {
+  res.render('index'); 
 });
 
-app.get('/create', 
-function(req, res) {
+app.get('/create', restrict, function(req, res) {
   res.render('index');
 });
 
-app.get('/links', 
-function(req, res) {
+app.get('/links', restrict, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
@@ -108,22 +96,45 @@ app.post('/login', function(req, res) {
   db.knex('users').where({username: username, password: password}).then(function(result) {
     // TODO: Create new session id and save in database for user
     if (result.length > 0) {
-      /*
-      req.session.regenerate(function(err) {
-        // will have a new session here
+      
+      req.session.regenerate(function() {
+        req.session.user = username;
+        // redirect user to home page
+        res.status(200).redirect('/');
       });
-      */
-      // redirect user to home page
-      res.status(200).redirect('/');
+        
     } else { // then create a session
       res.status(200).redirect('/login');
     }
   });
 });
 
+app.get('/login', function(req, res) {
+  res.send('<form method="post" action="/login">' +
+  '<p>' +
+    '<label>Username:</label>' +
+    '<input type="text" name="username">' +
+  '</p>' +
+  '<p>' +
+    '<label>Password:</label>' +
+    '<input type="text" name="password">' +
+  '</p>' +
+  '<p>' +
+    '<input type="submit" value="Login">' +
+  '</p>' +
+  '</form>').end();
+
+//  res.sendStatus(200);
+});
+
+app.get('/logout', function(req, res) {
+  req.session.destroy(function() {
+    res.redirect('/login');
+  });
+});
+
 app.post('/signup', function(req, res) {
   var body = req.body;
-  //console.log(JSON.stringify(body));
 
   db.knex('users').insert({username: body.username}).then(function() {
     res.status(201);
