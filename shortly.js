@@ -104,7 +104,7 @@ app.post('/login', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
 
-  // check that username and password authentiv=cate to the database
+  // check that username and password authentiv=cate to the database 
   db.knex('users').where({username: username, password: password}).then(function(result) {
     // TODO: Create new session id and save in database for user
     if (result.length > 0) {
@@ -114,9 +114,9 @@ app.post('/login', function(req, res) {
       });
       */
       // redirect user to home page
-      res.status(201).redirect('/');
+      res.status(200).redirect('/');
     } else { // then create a session
-      
+      res.status(200).redirect('/login');
     }
   });
 });
