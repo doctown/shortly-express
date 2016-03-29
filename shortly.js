@@ -104,18 +104,21 @@ app.post('/login', function(req, res) {
   var username = req.body.username;
   var password = req.body.password;
 
-  console.log(' IN THE LOGIN');
-  /*req.session.regenerate(function(err) {
-    // will have a new session here
-  });*/
-  //req.session.user === username;
-  
-  // // if the username and password are in the db
-  // if ( db.knex('users').where({username: username, password: password}) ) {
-  //   // then create a session
-  // } else {
-  //   // otherwise redirect back to the login page
-  // }
+  // check that username and password authentiv=cate to the database
+  db.knex('users').where({username: username, password: password}).then(function(result) {
+    // TODO: Create new session id and save in database for user
+    if (result.length > 0) {
+      /*
+      req.session.regenerate(function(err) {
+        // will have a new session here
+      });
+      */
+      // redirect user to home page
+      res.status(201).redirect('/');
+    } else { // then create a session
+      
+    }
+  });
 });
 
 app.post('/signup', function(req, res) {
@@ -123,7 +126,10 @@ app.post('/signup', function(req, res) {
   //console.log(JSON.stringify(body));
 
   db.knex('users').insert({username: body.username}).then(function() {
-    res.status(201).end();
+    res.status(201);
+    // TODO: create a session and save session to database for user
+    // redirect the user to index.html
+    res.redirect('/');
   });
 });
 
