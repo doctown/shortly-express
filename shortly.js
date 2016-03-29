@@ -30,7 +30,7 @@ app.use(session({
 }));
 
 // redirects user to login page if session is not valid
-var restrict = function (req, res, next) {
+var checkUser = function (req, res, next) {
   if (req.session.user) {
     next();
   } else {
@@ -39,15 +39,15 @@ var restrict = function (req, res, next) {
   }
 };
 
-app.get('/', restrict, function(req, res) {
+app.get('/', checkUser, function(req, res) {
   res.render('index'); 
 });
 
-app.get('/create', restrict, function(req, res) {
+app.get('/create', checkUser, function(req, res) {
   res.render('index');
 });
 
-app.get('/links', restrict, function(req, res) {
+app.get('/links', checkUser, function(req, res) {
   Links.reset().fetch().then(function(links) {
     res.send(200, links.models);
   });
