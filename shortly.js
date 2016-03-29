@@ -2,6 +2,8 @@ var express = require('express');
 var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
+var session = require('express-session');
+var cookieSession = require('cookie-session');
 
 
 var db = require('./app/config');
@@ -21,11 +23,34 @@ app.use(bodyParser.json());
 // Parse forms (signup/login)
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/public'));
+app.use(session({
+  secret: 'pssssst',
+  resave: false,
+  saveUninitialized: true
+}));
 
+
+app.use(function (req, res, next) {
+  var views = req.session.views;
+ 
+  if (!views) {
+    views = req.session.views = 0;
+  } else {
+    views++;
+  }
+  
+  next();
+});
 
 app.get('/', 
 function(req, res) {
-  res.render('index');
+  //console.log(req.cookie);
+  if (req.session.id === req.sessionID) {
+    res.render('index'); 
+  } else {
+    console.log('Not equal'); 
+    res.redirect('/login');
+  }
 });
 
 app.get('/create', 
@@ -75,7 +100,32 @@ function(req, res) {
 /************************************************************/
 // Write your authentication routes here
 /************************************************************/
+app.post('/login', function(req, res) {
+  var username = req.body.username;
+  var password = req.body.password;
 
+  console.log(' IN THE LOGIN');
+  /*req.session.regenerate(function(err) {
+    // will have a new session here
+  });*/
+  //req.session.user === username;
+  
+  // // if the username and password are in the db
+  // if ( db.knex('users').where({username: username, password: password}) ) {
+  //   // then create a session
+  // } else {
+  //   // otherwise redirect back to the login page
+  // }
+});
+
+app.post('/signup', function(req, res) {
+  var body = req.body;
+  //console.log(JSON.stringify(body));
+
+  db.knex('users').insert({username: body.username}).then(function() {
+    res.status(201).end();
+  });
+});
 
 
 /************************************************************/

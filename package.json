@@ -17,6 +17,7 @@
     "bluebird": "1.0.8",
     "body-parser": "^1.5.2",
     "bookshelf": "^0.9.1",
+    "cookie-session": "^2.0.0-alpha.1",
     "ejs": "~0.8.5",
     "express": "~4.0.0",
     "express-partials": "~0.2.0",
