@@ -3,8 +3,6 @@ var util = require('./lib/utility');
 var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
-var cookieSession = require('cookie-session');
-var util = require('./helpers');
 var bcrypt = require('bcrypt-nodejs');
 
 var db = require('./app/config');
