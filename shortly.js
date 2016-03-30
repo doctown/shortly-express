@@ -4,6 +4,8 @@ var partials = require('express-partials');
 var bodyParser = require('body-parser');
 var session = require('express-session');
 var bcrypt = require('bcrypt-nodejs');
+var passport = require('passport');
+var GithubStrategy = require('passport-github').Strategy;
 
 var db = require('./app/config');
 var Users = require('./app/collections/users');
@@ -27,18 +29,52 @@ app.use(session({
   resave: false,
   saveUninitialized: true
 }));
+app.use(passport.initialize());
+app.use(passport.session());
 
 // redirects user to login page if session is not valid
 var checkUser = function (req, res, next) {
-  if (req.session.user) {
-    next();
-  } else {
-    req.session.error = 'Access denied!';
-    res.redirect('/login');
-  }
+  // if (req.session.user) {
+  //   next();
+  // } else {
+  //   req.session.error = 'Access denied!';
+  //   res.redirect('/login');
+  // }
 };
 
-app.get('/', checkUser, function(req, res) {
+passport.use(new GithubStrategy({
+  clientID: '3aa86644323f6236cb15',
+  clientSecret: '976b72c0d502c25442061b4f16413cdcbcf011ac',
+  callbackURL: 'http://localhost:4568/auth/callback'
+}, function(accessToken, refreshToken, profile, done) {
+  done(null, {
+    accessToken: accessToken,
+    profile: profile
+  });
+}));
+
+passport.serializeUser(function(user, done) {
+  console.log(user);
+  done(null, user);
+});
+
+passport.deserializeUser(function(user, done) {
+   
+  done(null, user);
+});
+
+app.get('/auth', passport.authenticate('github'));
+app.get('/auth/error', function(req, res) {
+  res.sendStatus(404);
+});
+app.get('/auth/callback',
+  passport.authenticate('github', {failureRedirect: '/auth/error'}),
+  function(req, res) {
+    res.redirect('/');
+  });
+
+app.get('/', function(req, res) {
+  console.log('-----------------------------------', req.session);
   res.render('index'); 
 });
 
